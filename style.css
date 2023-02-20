@@ -1,0 +1,74 @@
+.main{
+    border: 0.1px solid rgba(0, 0, 0, 0.216); 
+    width: 800px;
+    height: 300px;
+    overflow: scroll;
+    overflow-x: hidden;
+    outline: none;
+}
+
+.jcc {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.lines{
+    width: 3px;
+    height: 305px;
+    background-color: rgb(226, 226, 226);
+    border-radius: 3px;
+}
+
+ul li {
+    font-size:  16px;
+    padding: 0;
+    list-style: none;
+}
+
+ul{
+    padding: 0;
+    padding-right: 20px;
+    overflow: scroll;
+}
+
+textarea{
+    resize: none;
+    caret-color: green;
+    overflow-wrap: break-word;
+}
+
+ul::-webkit-scrollbar {
+    width: 0px;
+    border-radius: 5px;
+    display: none;
+}
+  
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+.cursor {
+  width: 4px;
+  height: 20px;
+  background-color: rgb(0, 98, 255);
+  position: absolute;
+}
+
+#guest-username{
+  font-size: 15px;
+  position: absolute;
+  bottom: 19px;
+  background-color:  rgb(0, 98, 255);
+  color: white;
+  border-radius: 3px;
+  padding: 3px;
+}
