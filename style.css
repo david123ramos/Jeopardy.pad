@@ -72,3 +72,11 @@ ul::-webkit-scrollbar {
   border-radius: 3px;
   padding: 3px;
 }
+
+#guests {
+  padding: 0rem 4rem;
+}
+
+.line {
+  height: 18px;
+}
