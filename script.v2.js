@@ -2,29 +2,36 @@ import ws, {WsEvent, WsEventType} from './ws.js';
 import Editor from './editor.js';
 import { keyMap } from './constants.js';
 
+const eventQueue = [];
 
 Editor.element.addEventListener("keyup", e => {
-    const currlineCount = Editor.element.childElementCount;
+    eventQueue.push(e);
+    processEvents();
+});
 
-    if(e.keyCode == keyMap.ENTER ) {
-        Editor.addLine();
-    }else if(e.keyCode == keyMap.BACKSPACE && currlineCount <= Editor.lines) {
-        Editor.removeLine();
-    }else {
-
-        const coords = getCaretCoords();
-        sendCaretCoords(coords);
-
-        //if ((e.keyCode >= 48 && e.keyCode <= 57) || (e.keyCode >= 65 && e.keyCode <= 90)){
+function processEvents() {
+    eventQueue.forEach(e => {
+        const currlineCount = Editor.element.childElementCount;
+        if(e.keyCode == keyMap.ENTER ) {
+            Editor.addLine();
+        }else if(e.keyCode == keyMap.BACKSPACE && currlineCount <= Editor.lines) {
+            //Editor.removeLine();
+        }else {
+    
+            const coords = getCaretCoords();
+            sendCaretCoords(coords);
             
-            const pos = getPos();
-            console.log(pos);
+            const pos = getPos(e.key);
+            console.log(pos, e.key);
 
             Editor.doc.putChatAt(e.key, pos);
             sendText(Editor.doc);    
-        //}
-    }
-});
+
+        }
+        eventQueue.shift();
+    });
+}
+
 
 Editor.element.addEventListener("scroll", Editor.syncScroll.bind(Editor));
 
@@ -119,16 +126,17 @@ function getGuestBadgeTemplate(){
     return template.content.cloneNode(true);
 }
 
-function getPos() {
+function getPos(lastChar) {
     const sel = document.getSelection();
     const range = sel.getRangeAt(0);
 
     const row = range.startContainer.parentElement;
 
-    const text = Editor.element.textContent.slice(0, sel.focusOffset);
+    const text = row.textContent.slice(0, sel.focusOffset);
     
     const line = Array.prototype.indexOf.call(Editor.element.children, row);
-    const col = text.split("\n").pop().length;
+
+    const col = text.substring(0 ,text.lastIndexOf(lastChar)).split("").length;
 
     return {line, col};
 }
