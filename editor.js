@@ -17,7 +17,7 @@ class Note {
     }
 
     #line() {
-        return new Array(Math.floor(this.pageWidth / this.fontSize))
+        return new Array();
     }
 
     insertText(text, posx, posy, effects) {
@@ -27,15 +27,9 @@ class Note {
         });
     }
 
-    #createRemap(inMin, inMax, outMin, outMax) {
-        return function remaper(x) {
-            return (x - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
-        };
-    }
-
     putChatAt(char, {line, col}) {
         const glyph = new Glyph(char, col, line, null);
-        this.lines[line ].splice(col, 1 , glyph);
+        this.lines[line ].splice(col, 0, glyph);
     }
 
     addLine() {
@@ -62,20 +56,27 @@ class JeopardyDocEngine {
         Editor.element.innerHTML = "";
         Editor.counterRef.innerHTML = "";
         Editor.lines = 0;
+
+        
         note.lines.forEach((line, index) => {
             const d = document.createElement("div");
             d.setAttribute("line-index", index);
             d.classList.add("line");
+
             line.forEach(glyph => {
                 if(glyph) {
+
                     const parsedGlyph = this.parseGlyph(glyph);
-                    d.appendChild( parsedGlyph );
+                    parsedGlyph.contentEditable = false;
+                    d.appendChild( parsedGlyph );                    
                 }
             }); 
 
             Editor.element.appendChild(d);
-            Editor.addLine();
+            Editor.addGuiLine();
         });
+
+        
     }
 
     /**
@@ -102,15 +103,22 @@ const Editor = new Proxy({
     doc : new Note(),
 
     addLine : function(){
+        this.addGuiLine();
+        this.addDocLine();
+    },
+
+    addGuiLine() {
         this.lines += 1;
         const newLine = document.createElement("li");
         newLine.textContent = this.lines;
         linesCounterRef.appendChild(newLine);
-
-        this.doc.addLine();
-
         this.syncScroll();
     },
+
+    addDocLine() {
+        this.doc.addLine();
+    },
+
     removeLine : function() {
         if(this.lines > 1) {
             linesCounterRef.removeChild(linesCounterRef.lastChild);
@@ -125,7 +133,11 @@ const Editor = new Proxy({
 
     getUser : function(id) {
         return this.users.find(u => u.id == id);
-    }
+    },
+
+    rerender: function() {
+        this.engine.render(this.doc);
+    }   
 
 }, {
     set: function(target, attr, value) {

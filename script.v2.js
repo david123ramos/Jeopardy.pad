@@ -2,36 +2,44 @@ import ws, {WsEvent, WsEventType} from './ws.js';
 import Editor from './editor.js';
 import { keyMap } from './constants.js';
 
-const eventQueue = [];
-
 Editor.element.addEventListener("keyup", e => {
-    eventQueue.push(e);
-    processEvents();
-});
+    //eventQueue.push(e);
+    //processEvents();
 
-function processEvents() {
-    eventQueue.forEach(e => {
-        const currlineCount = Editor.element.childElementCount;
+    const currlineCount = Editor.element.childElementCount;
         if(e.keyCode == keyMap.ENTER ) {
             Editor.addLine();
         }else if(e.keyCode == keyMap.BACKSPACE && currlineCount <= Editor.lines) {
             //Editor.removeLine();
         }else {
+
+            let key = e.key;
+
+            if(key.charCodeAt(0) == 32) key = `\xa0`;
     
             const coords = getCaretCoords();
             sendCaretCoords(coords);
+            const pos = getPos(key);
+            console.log(pos, key);
+            console.log(Editor.doc);
             
-            const pos = getPos(e.key);
-            console.log(pos, e.key);
+            Editor.doc.putChatAt(key, pos);
+            Editor.rerender();
+            window.Editorfocus(); 
 
-            Editor.doc.putChatAt(e.key, pos);
             sendText(Editor.doc);    
-
         }
-        eventQueue.shift();
-    });
-}
+});
 
+window.Editorfocus = function(){
+    var range = document.createRange();
+    var sel = window.getSelection();
+    range.setStartAfter(Editor.element.childNodes[ Editor.element.childElementCount -1 ].lastChild, 0);
+    range.collapse(false);
+    sel.removeAllRanges();
+    sel.addRange(range);
+    Editor.element.childNodes[ Editor.element.childElementCount -1 ].lastChild.focus();
+}
 
 Editor.element.addEventListener("scroll", Editor.syncScroll.bind(Editor));
 
@@ -130,13 +138,26 @@ function getPos(lastChar) {
     const sel = document.getSelection();
     const range = sel.getRangeAt(0);
 
-    const row = range.startContainer.parentElement;
 
-    const text = row.textContent.slice(0, sel.focusOffset);
+    let row = range.startContainer; 
+    if(row.nodeType === 3 ){ //textNode
+        row = row.parentElement;
+    }
+    
+
+    const text = row.textContent
     
     const line = Array.prototype.indexOf.call(Editor.element.children, row);
 
-    const col = text.substring(0 ,text.lastIndexOf(lastChar)).split("").length;
+    //sanitize char code of space (32) and &nbsp;(160)
+    let chr = lastChar;
+    if(lastChar.charCodeAt(0) == 32) { chr = '\xa0' }
+
+    let lastOccurence = text.lastIndexOf(chr);
+
+    if(lastOccurence < 0) lastOccurence = text.length;
+    
+    const col = text.length //text.substring(0 ,lastOccurence+ 1).split("").length;
 
     return {line, col};
 }
